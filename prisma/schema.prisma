@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  TECHNICIAN
+  USER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_USER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(USER)
+  active       Boolean  @default(true)
+
+  createdTickets  Ticket[]        @relation("TicketCreator")
+  assignedTickets Ticket[]        @relation("TicketTechnician")
+  comments        TicketComment[]
+  historyEntries  TicketHistory[] @relation("HistoryActor")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model TicketCategory {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  active      Boolean @default(true)
+
+  tickets Ticket[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ticket_categories")
+}
+
+model Ticket {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+
+  creatorId String
+  creator   User   @relation("TicketCreator", fields: [creatorId], references: [id])
+
+  technicianId String?
+  technician   User?   @relation("TicketTechnician", fields: [technicianId], references: [id])
+
+  categoryId String
+  category   TicketCategory @relation(fields: [categoryId], references: [id])
+
+  comments TicketComment[]
+  history  TicketHistory[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+  closedAt   DateTime?
+
+  @@index([creatorId])
+  @@index([technicianId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([priority])
+  @@map("tickets")
+}
+
+model TicketComment {
+  id      String @id @default(uuid())
+  content String
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ticketId])
+  @@index([authorId])
+  @@map("ticket_comments")
+}
+
+model TicketHistory {
+  id String @id @default(uuid())
+
+  action   String
+  field    String?
+  oldValue String?
+  newValue String?
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  actorId String?
+  actor   User?   @relation("HistoryActor", fields: [actorId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([ticketId])
+  @@index([actorId])
+  @@map("ticket_history")
+}
