@@ -23,6 +23,30 @@ export class UserController {
             email: user.email,
             role: user.role,
             createdAt: user.createdAt,
+        })        
+    }
+
+    async me(
+        request: FastifyRequest,
+        reply: FastifyReply
+        ) {
+        const userId = request.user.sub;
+
+        const user = await userService.findById(userId)
+
+    if (!user) {
+        return reply.status(404).send({
+        message: 'User not found',
         })
     }
+
+    return reply.send({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+        createdAt: user.createdAt,
+    })
+  }
 }

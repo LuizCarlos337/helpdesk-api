@@ -32,4 +32,7 @@ export class UserService {
             passwordHash,
         })
     }
+    async findById(id: string) {
+        return this.userRepository.findById(id)
+    }
 }
