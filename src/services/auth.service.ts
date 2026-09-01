@@ -1,6 +1,7 @@
 import argon2 from 'argon2';
 
 import { UserRepository } from '../repositories/user.repository.js';
+import { AppError } from '../errors/app-error.js';
 
 interface LoginInput {
     email: string
@@ -18,7 +19,7 @@ export class AuthService {
         const user = await this.userRepository.findByEmail(email);
 
         if(!user || !user.active) {
-            throw new Error('Invalid email or password');
+            throw new AppError('Invalid email or password', 401);
         }
 
         const passwordMatches = await argon2.verify(
@@ -27,7 +28,7 @@ export class AuthService {
         )
 
         if(!passwordMatches) {
-            throw new Error('Invalid email or password');
+            throw new AppError('Invalid email or password', 401);
         }
         return user;
     }

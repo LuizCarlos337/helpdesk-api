@@ -4,6 +4,7 @@ import jwt from '@fastify/jwt';
 
 import { userRoutes } from './routes/user.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
+import { errorHandler } from './errors/error-handler.js';
 
 
 export function buildApp() {
@@ -33,6 +34,7 @@ export function buildApp() {
 
     app.register(userRoutes);
     app.register(authRoutes);
+    app.setErrorHandler(errorHandler);
 
     return app;
 }
