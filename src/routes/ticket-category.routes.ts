@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 
 import { TicketCategoryController } from '../controllers/ticket-category.controller.js'
 import { authenticate } from '../middlewares/authenticate.js'
+import { authorize } from '../middlewares/authorize.js'
 
 const ticketCategoryController =
   new TicketCategoryController()
@@ -12,7 +13,10 @@ export async function ticketCategoryRoutes(
   app.post(
     '/ticket-categories',
     {
-      preHandler: authenticate,
+       preHandler: [
+      authenticate,
+      authorize('ADMIN'),
+    ],
     },
     (request, reply) => {
       return ticketCategoryController.create(
