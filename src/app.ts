@@ -5,6 +5,7 @@ import jwt from '@fastify/jwt';
 import { userRoutes } from './routes/user.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { errorHandler } from './errors/error-handler.js';
+import { ticketCategoryRoutes } from './routes/ticket-category.routes.js'
 
 
 export function buildApp() {
@@ -35,6 +36,7 @@ export function buildApp() {
     app.register(userRoutes);
     app.register(authRoutes);
     app.setErrorHandler(errorHandler);
+    app.register(ticketCategoryRoutes);
 
     return app;
 }
