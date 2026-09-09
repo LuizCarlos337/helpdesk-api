@@ -3,12 +3,28 @@ import type {
   FastifyRequest,
 } from 'fastify'
 
-import { createTicketSchema } from '../schemas/ticket.schema.js'
+import { createTicketSchema, listTicketsQuerySchema } from '../schemas/ticket.schema.js'
 import { TicketService } from '../services/ticket.service.js'
 
 const ticketService = new TicketService()
 
 export class TicketController {
+  async list(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const query =
+    listTicketsQuerySchema.parse(request.query)
+
+  const result = await ticketService.list(
+    request.user.sub,
+    request.user.role,
+    query,
+  )
+
+  return reply.send(result)
+}
+
   async create(
     request: FastifyRequest,
     reply: FastifyReply,

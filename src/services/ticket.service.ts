@@ -1,9 +1,16 @@
-import type { TicketPriority } from '../generated/prisma/enums.js'
+import type {
+  TicketPriority,
+  TicketStatus,
+  UserRole,
+} from '../generated/prisma/enums.js'
 
 import { AppError } from '../errors/app-error.js'
 import { TicketCategoryRepository } from '../repositories/ticket-category.repository.js'
 import { TicketRepository } from '../repositories/ticket.repository.js'
-import type { CreateTicketInput } from '../schemas/ticket.schema.js'
+import type {
+  CreateTicketInput,
+  ListTicketsQuery,
+} from '../schemas/ticket.schema.js'
 
 export class TicketService {
   constructor(
@@ -44,4 +51,46 @@ export class TicketService {
         (priority ?? 'MEDIUM') as TicketPriority,
     })
   }
+  async list(
+  userId: string,
+  role: UserRole,
+  {
+    page,
+    limit,
+    status,
+    priority,
+    categoryId,
+  }: ListTicketsQuery,
+) {
+  const { tickets, total } =
+    await this.ticketRepository.findMany({
+      userId,
+      role,
+      page,
+      limit,
+
+      ...(status
+        ? { status: status as TicketStatus }
+        : {}),
+
+      ...(priority
+        ? { priority: priority as TicketPriority }
+        : {}),
+
+      ...(categoryId
+        ? { categoryId }
+        : {}),
+    })
+
+  return {
+    data: tickets,
+
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  }
+}
 }

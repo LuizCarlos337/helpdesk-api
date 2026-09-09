@@ -20,4 +20,16 @@ export async function ticketRoutes(
       )
     },
   )
+  app.get(
+  '/tickets',
+  {
+    preHandler: authenticate,
+  },
+  (request, reply) => {
+    return ticketController.list(
+      request,
+      reply,
+    )
+  },
+)
 }

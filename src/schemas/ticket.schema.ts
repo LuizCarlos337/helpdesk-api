@@ -14,3 +14,33 @@ export const createTicketSchema = z.object({
 
 export type CreateTicketInput =
   z.infer<typeof createTicketSchema>
+
+export const listTicketsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+
+  status: z
+    .enum([
+      'OPEN',
+      'IN_PROGRESS',
+      'WAITING_USER',
+      'RESOLVED',
+      'CLOSED',
+    ])
+    .optional(),
+
+  priority: z
+    .enum([
+      'LOW',
+      'MEDIUM',
+      'HIGH',
+      'CRITICAL',
+    ])
+    .optional(),
+
+  categoryId: z.string().uuid().optional(),
+})
+
+export type ListTicketsQuery =
+  z.infer<typeof listTicketsQuerySchema>
