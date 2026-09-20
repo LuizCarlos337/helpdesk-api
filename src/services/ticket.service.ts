@@ -7,6 +7,7 @@ import type {
 import { AppError } from '../errors/app-error.js'
 import { TicketCategoryRepository } from '../repositories/ticket-category.repository.js'
 import { TicketRepository } from '../repositories/ticket.repository.js'
+import { UserRepository } from '../repositories/user.repository.js'
 import type {
   CreateTicketInput,
   ListTicketsQuery,
@@ -19,7 +20,48 @@ export class TicketService {
 
     private readonly ticketCategoryRepository =
       new TicketCategoryRepository(),
+
+      private readonly userRepository =
+    new UserRepository(),
   ) {}
+
+  async assignTechnician(
+  ticketId: string,
+  technicianId: string,
+) {
+  const ticket =
+    await this.ticketRepository.findById(ticketId)
+
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404)
+  }
+
+  const technician =
+    await this.userRepository.findById(technicianId)
+
+  if (!technician) {
+    throw new AppError('Technician not found', 404)
+  }
+
+  if (!technician.active) {
+    throw new AppError(
+      'Technician is inactive',
+      400,
+    )
+  }
+
+  if (technician.role !== 'TECHNICIAN') {
+    throw new AppError(
+      'User is not a technician',
+      400,
+    )
+  }
+
+  return this.ticketRepository.assignTechnician(
+    ticketId,
+    technicianId,
+  )
+}
 
   async findById(
   ticketId: string,

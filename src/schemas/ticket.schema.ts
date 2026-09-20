@@ -51,3 +51,10 @@ export type ListTicketsQuery =
 
 export type TicketParams =
   z.infer<typeof ticketParamsSchema>
+
+  export const assignTicketSchema = z.object({
+  technicianId: z.string().uuid(),
+})
+
+export type AssignTicketInput =
+  z.infer<typeof assignTicketSchema>

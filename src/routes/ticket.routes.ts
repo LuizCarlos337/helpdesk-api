@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 
 import { TicketController } from '../controllers/ticket.controller.js'
 import { authenticate } from '../middlewares/authenticate.js'
+import { authorize } from '../middlewares/authorize.js'
 
 const ticketController = new TicketController()
 
@@ -20,6 +21,22 @@ export async function ticketRoutes(
       )
     },
   )
+
+  app.patch(
+  '/tickets/:id/assign',
+  {
+    preHandler: [
+      authenticate,
+      authorize('ADMIN'),
+    ],
+  },
+  (request, reply) => {
+    return ticketController.assign(
+      request,
+      reply,
+    )
+  },
+)
 
   app.get(
   '/tickets/:id',

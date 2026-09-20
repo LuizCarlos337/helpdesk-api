@@ -84,6 +84,42 @@ export class TicketRepository {
   })
 }
   
+  async assignTechnician(
+  ticketId: string,
+  technicianId: string,
+) {
+  return prisma.ticket.update({
+    where: {
+      id: ticketId,
+    },
+
+    data: {
+      technicianId,
+    },
+
+    include: {
+      category: true,
+
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      technician: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  })
+}
+
   async findMany({
   userId,
   role,
