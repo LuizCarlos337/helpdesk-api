@@ -3,8 +3,8 @@ import type {
   FastifyRequest,
 } from 'fastify'
 
-import { createTicketSchema, listTicketsQuerySchema } from '../schemas/ticket.schema.js'
-import { TicketService } from '../services/ticket.service.js'
+import { createTicketSchema, listTicketsQuerySchema, ticketParamsSchema } from '../schemas/ticket.schema.js'
+import { TicketService,  } from '../services/ticket.service.js'
 
 const ticketService = new TicketService()
 
@@ -23,6 +23,22 @@ export class TicketController {
   )
 
   return reply.send(result)
+}
+
+  async show(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const { id } =
+    ticketParamsSchema.parse(request.params)
+
+  const ticket = await ticketService.findById(
+    id,
+    request.user.sub,
+    request.user.role,
+  )
+
+  return reply.send(ticket)
 }
 
   async create(

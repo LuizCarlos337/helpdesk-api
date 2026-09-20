@@ -44,3 +44,10 @@ export const listTicketsQuerySchema = z.object({
 
 export type ListTicketsQuery =
   z.infer<typeof listTicketsQuerySchema>
+
+  export const ticketParamsSchema = z.object({
+  id: z.string().uuid(),
+})
+
+export type TicketParams =
+  z.infer<typeof ticketParamsSchema>

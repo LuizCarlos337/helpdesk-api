@@ -20,6 +20,20 @@ export async function ticketRoutes(
       )
     },
   )
+
+  app.get(
+  '/tickets/:id',
+  {
+    preHandler: authenticate,
+  },
+  (request, reply) => {
+    return ticketController.show(
+      request,
+      reply,
+    )
+  },
+)
+
   app.get(
   '/tickets',
   {

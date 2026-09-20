@@ -39,6 +39,50 @@ export class TicketRepository {
       },
     })    
   }
+
+  async findById(id: string) {
+  return prisma.ticket.findUnique({
+    where: {
+      id,
+    },
+
+    include: {
+      category: true,
+
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      technician: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      comments: {
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              role: true,
+            },
+          },
+        },
+
+        orderBy: {
+          createdAt: 'asc',
+        },
+      },
+    },
+  })
+}
   
   async findMany({
   userId,

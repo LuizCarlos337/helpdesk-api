@@ -21,6 +21,32 @@ export class TicketService {
       new TicketCategoryRepository(),
   ) {}
 
+  async findById(
+  ticketId: string,
+  userId: string,
+  role: UserRole,
+) {
+  const ticket =
+    await this.ticketRepository.findById(ticketId)
+
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404)
+  }
+
+  const canAccess =
+    role === 'ADMIN' ||
+    (role === 'USER' &&
+      ticket.creatorId === userId) ||
+    (role === 'TECHNICIAN' &&
+      ticket.technicianId === userId)
+
+  if (!canAccess) {
+    throw new AppError('Ticket not found', 404)
+  }
+
+  return ticket
+}
+  
   async create(
     creatorId: string,
     {
