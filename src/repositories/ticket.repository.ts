@@ -40,6 +40,43 @@ export class TicketRepository {
     })    
   }
 
+  async updateStatus(
+  ticketId: string,
+  status: TicketStatus,
+  resolvedAt: Date | null,
+  closedAt: Date | null,
+) {
+  return prisma.ticket.update({
+    where: { id: ticketId },
+
+    data: {
+      status,
+      resolvedAt,
+      closedAt,
+    },
+
+    include: {
+      category: true,
+
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      technician: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  })
+}
+
   async findById(id: string) {
   return prisma.ticket.findUnique({
     where: {

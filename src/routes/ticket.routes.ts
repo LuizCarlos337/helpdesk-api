@@ -38,6 +38,22 @@ export async function ticketRoutes(
   },
 )
 
+app.patch(
+  '/tickets/:id/status',
+  {
+    preHandler: [
+      authenticate,
+      authorize('ADMIN', 'TECHNICIAN'),
+    ],
+  },
+  (request, reply) => {
+    return ticketController.updateStatus(
+      request,
+      reply,
+    )
+  },
+)
+
   app.get(
   '/tickets/:id',
   {

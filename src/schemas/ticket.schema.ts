@@ -58,3 +58,16 @@ export type TicketParams =
 
 export type AssignTicketInput =
   z.infer<typeof assignTicketSchema>
+
+  export const updateTicketStatusSchema = z.object({
+  status: z.enum([
+    'OPEN',
+    'IN_PROGRESS',
+    'WAITING_USER',
+    'RESOLVED',
+    'CLOSED',
+  ]),
+})
+
+export type UpdateTicketStatusInput =
+  z.infer<typeof updateTicketStatusSchema>

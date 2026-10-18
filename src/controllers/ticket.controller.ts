@@ -8,6 +8,7 @@ import {
   createTicketSchema,
   listTicketsQuerySchema,
   ticketParamsSchema,
+  updateTicketStatusSchema,
 } from '../schemas/ticket.schema.js'
 import { TicketService,  } from '../services/ticket.service.js'
 
@@ -61,6 +62,26 @@ export class TicketController {
       id,
       technicianId,
     )
+
+  return reply.send(ticket)
+}
+
+async updateStatus(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const { id } =
+    ticketParamsSchema.parse(request.params)
+
+  const { status } =
+    updateTicketStatusSchema.parse(request.body)
+
+  const ticket = await ticketService.updateStatus(
+    id,
+    request.user.sub,
+    request.user.role,
+    status,
+  )
 
   return reply.send(ticket)
 }

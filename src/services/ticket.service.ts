@@ -63,6 +63,81 @@ export class TicketService {
   )
 }
 
+async updateStatus(
+  ticketId: string,
+  userId: string,
+  role: UserRole,
+  newStatus: TicketStatus,
+) {
+  const ticket =
+    await this.ticketRepository.findById(ticketId)
+
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404)
+  }
+
+  const canUpdate =
+    role === 'ADMIN' ||
+    (role === 'TECHNICIAN' &&
+      ticket.technicianId === userId)
+
+  if (!canUpdate) {
+    throw new AppError('Forbidden', 403)
+  }
+
+  const allowedTransitions: Record<
+    TicketStatus,
+    TicketStatus[]
+  > = {
+    OPEN: ['IN_PROGRESS'],
+
+    IN_PROGRESS: [
+      'WAITING_USER',
+      'RESOLVED',
+    ],
+
+    WAITING_USER: ['IN_PROGRESS'],
+
+    RESOLVED: [
+      'IN_PROGRESS',
+      'CLOSED',
+    ],
+
+    CLOSED: [],
+  }
+
+  if (
+    !allowedTransitions[ticket.status].includes(newStatus)
+  ) {
+    throw new AppError(
+      'Invalid ticket status transition',
+      400,
+    )
+  }
+
+  let resolvedAt = ticket.resolvedAt
+  let closedAt = ticket.closedAt
+
+  if (newStatus === 'RESOLVED') {
+    resolvedAt = new Date()
+  }
+
+  if (newStatus === 'IN_PROGRESS') {
+    resolvedAt = null
+  }
+
+  if (newStatus === 'CLOSED') {
+    closedAt = new Date()
+  }
+
+  return this.ticketRepository.updateStatus(
+    ticketId,
+    newStatus,
+    resolvedAt,
+    closedAt,
+  )
+}
+
   async findById(
   ticketId: string,
   userId: string,
