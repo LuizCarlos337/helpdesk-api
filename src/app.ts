@@ -7,6 +7,7 @@ import { authRoutes } from './routes/auth.routes.js';
 import { errorHandler } from './errors/error-handler.js';
 import { ticketCategoryRoutes } from './routes/ticket-category.routes.js'
 import { ticketRoutes } from './routes/ticket.routes.js'
+import { ticketCommentRoutes } from './routes/ticket-comment.routes.js'
 
 
 export function buildApp() {
@@ -38,7 +39,8 @@ export function buildApp() {
     app.register(authRoutes);
     app.setErrorHandler(errorHandler);
     app.register(ticketCategoryRoutes);
-    app.register(ticketRoutes)
+    app.register(ticketRoutes);
+    app.register(ticketCommentRoutes);
 
     return app;
 }
