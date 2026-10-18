@@ -8,6 +8,7 @@ import { errorHandler } from './errors/error-handler.js';
 import { ticketCategoryRoutes } from './routes/ticket-category.routes.js'
 import { ticketRoutes } from './routes/ticket.routes.js'
 import { ticketCommentRoutes } from './routes/ticket-comment.routes.js'
+import { ticketHistoryRoutes } from './routes/ticket-history.routes.js'
 
 
 export function buildApp() {
@@ -41,6 +42,7 @@ export function buildApp() {
     app.register(ticketCategoryRoutes);
     app.register(ticketRoutes);
     app.register(ticketCommentRoutes);
+    app.register(ticketHistoryRoutes);
 
     return app;
 }

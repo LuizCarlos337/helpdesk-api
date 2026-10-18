@@ -4,6 +4,7 @@ import type {
   UserRole,
 } from '../generated/prisma/enums.js'
 import { prisma } from '../lib/prisma.js'
+import { AppError } from '../errors/app-error.js'
 
 interface CreateTicketData {
   title: string
@@ -25,10 +26,13 @@ interface ListTicketsData {
 export class TicketRepository {
     
   async create(data: CreateTicketData) {
-    return prisma.ticket.create({
+  return prisma.$transaction(async (tx) => {
+    const ticket = await tx.ticket.create({
       data,
+
       include: {
         category: true,
+
         creator: {
           select: {
             id: true,
@@ -37,43 +41,86 @@ export class TicketRepository {
           },
         },
       },
-    })    
-  }
+    })
 
-  async updateStatus(
+    await tx.ticketHistory.create({
+      data: {
+        ticketId: ticket.id,
+        actorId: data.creatorId,
+        action: 'CREATED',
+        field: 'status',
+        oldValue: null,
+        newValue: ticket.status,
+      },
+    })
+
+    return ticket
+  })
+}
+
+ async updateStatus(
   ticketId: string,
-  status: TicketStatus,
+  expectedStatus: TicketStatus,
+  newStatus: TicketStatus,
   resolvedAt: Date | null,
   closedAt: Date | null,
+  actorId: string,
 ) {
-  return prisma.ticket.update({
-    where: { id: ticketId },
-
-    data: {
-      status,
-      resolvedAt,
-      closedAt,
-    },
-
-    include: {
-      category: true,
-
-      creator: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
+  return prisma.$transaction(async (tx) => {
+    const result = await tx.ticket.updateMany({
+      where: {
+        id: ticketId,
+        status: expectedStatus,
       },
 
-      technician: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+      data: {
+        status: newStatus,
+        resolvedAt,
+        closedAt,
+      },
+    })
+
+    if (result.count !== 1) {
+      throw new AppError(
+        'Ticket status changed concurrently',
+        409,
+      )
+    }
+
+    await tx.ticketHistory.create({
+      data: {
+        ticketId,
+        actorId,
+        action: 'STATUS_CHANGED',
+        field: 'status',
+        oldValue: expectedStatus,
+        newValue: newStatus,
+      },
+    })
+
+    return tx.ticket.findUniqueOrThrow({
+      where: { id: ticketId },
+
+      include: {
+        category: true,
+
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
-    },
+    })
   })
 }
 
@@ -124,36 +171,67 @@ export class TicketRepository {
   async assignTechnician(
   ticketId: string,
   technicianId: string,
+  actorId: string,
 ) {
-  return prisma.ticket.update({
-    where: {
-      id: ticketId,
-    },
+  return prisma.$transaction(async (tx) => {
+    const currentTicket = await tx.ticket.findUnique({
+      where: { id: ticketId },
+      select: { technicianId: true },
+    })
 
-    data: {
-      technicianId,
-    },
+    if (!currentTicket) {
+      throw new AppError('Ticket not found', 404)
+    }
 
-    include: {
-      category: true,
+    if (currentTicket.technicianId === technicianId) {
+      throw new AppError(
+        'Technician already assigned',
+        409,
+      )
+    }
 
-      creator: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
+    const ticket = await tx.ticket.update({
+      where: {
+        id: ticketId,
+        technicianId: currentTicket.technicianId,
       },
 
-      technician: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
+      data: { technicianId },
+
+      include: {
+        category: true,
+
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
         },
       },
-    },
+    })
+
+    await tx.ticketHistory.create({
+      data: {
+        ticketId,
+        actorId,
+        action: 'TECHNICIAN_ASSIGNED',
+        field: 'technicianId',
+        oldValue: currentTicket.technicianId,
+        newValue: technicianId,
+      },
+    })
+
+    return ticket
   })
 }
 

@@ -61,6 +61,7 @@ export class TicketController {
     await ticketService.assignTechnician(
       id,
       technicianId,
+      request.user.sub,
     )
 
   return reply.send(ticket)

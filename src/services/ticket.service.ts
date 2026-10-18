@@ -28,6 +28,7 @@ export class TicketService {
   async assignTechnician(
   ticketId: string,
   technicianId: string,
+  actorId: string,
 ) {
   const ticket =
     await this.ticketRepository.findById(ticketId)
@@ -60,6 +61,7 @@ export class TicketService {
   return this.ticketRepository.assignTechnician(
     ticketId,
     technicianId,
+    actorId,
   )
 }
 
@@ -131,10 +133,12 @@ async updateStatus(
   }
 
   return this.ticketRepository.updateStatus(
-    ticketId,
-    newStatus,
-    resolvedAt,
-    closedAt,
+     ticketId,
+  ticket.status,
+  newStatus,
+  resolvedAt,
+  closedAt,
+  userId,
   )
 }
 
